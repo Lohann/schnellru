@@ -32,4 +32,4 @@ bench = false
 libfuzzer-sys = { version = "0.4.10", features = ["arbitrary-derive"] }
 lru = "0.16.1"
 schnellru = { path = ".." }
-ahash = "0.8.11"
+ahash = "0.8.12"
