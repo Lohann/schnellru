@@ -1,9 +1,12 @@
-use arbitrary::Arbitrary;
-use honggfuzz::fuzz;
+#![no_main]
+use libfuzzer_sys::{
+    arbitrary::{self, Arbitrary},
+    fuzz_target,
+};
 
 type Key = u16;
 
-#[derive(Arbitrary, Debug)]
+#[derive(Debug, Arbitrary)]
 pub enum Action {
     Insert { key: Key, value: u8 },
     GetOrInsert { key: Key, value: u8 },
@@ -15,7 +18,7 @@ pub enum Action {
     ToggleOverflow,
 }
 
-#[derive(Arbitrary)]
+#[derive(Debug, Arbitrary)]
 pub struct Testcase {
     hasher_seed: usize,
     length: u16,
@@ -83,45 +86,41 @@ impl<K, V> schnellru::Limiter<K, V> for LimitedLength {
     }
 }
 
-fn main() {
-    loop {
-        fuzz!(|testcase: Testcase| {
-            let hasher = ahash::RandomState::with_seed(testcase.hasher_seed);
-            let mut lru = schnellru::LruMap::with_hasher(LimitedLength::new(testcase.length as usize), hasher);
-            for action in &testcase.actions {
-                match action {
-                    Action::Insert { key, value } => {
-                        lru.insert(key, value);
-                    }
-                    Action::GetOrInsert { key, value } => {
-                        let value = lru.get_or_insert(key, || value);
-                        if testcase.length == 0 {
-                            assert!(value.is_none());
-                        }
-                    }
-                    Action::Get { key } => {
-                        lru.get(&key);
-                    }
-                    Action::Remove { key } => {
-                        lru.remove(&key);
-                    }
-                    Action::PopOldest => {
-                        lru.pop_oldest();
-                    }
-                    Action::PopNewest => {
-                        lru.pop_newest();
-                    }
-                    Action::Clear => {
-                        lru.clear();
-                    }
-                    Action::ToggleOverflow => {
-                        let value = !lru.limiter_mut().overflow;
-                        lru.limiter_mut().overflow = value;
-                    }
-                }
-
-                lru.assert_check_internal_state();
+fuzz_target!(|testcase: Testcase| {
+    let hasher = ahash::RandomState::with_seed(testcase.hasher_seed);
+    let mut lru = schnellru::LruMap::with_hasher(LimitedLength::new(testcase.length as usize), hasher);
+    for action in &testcase.actions {
+        match action {
+            Action::Insert { key, value } => {
+                lru.insert(key, value);
             }
-        });
+            Action::GetOrInsert { key, value } => {
+                let value = lru.get_or_insert(key, || value);
+                if testcase.length == 0 {
+                    assert!(value.is_none());
+                }
+            }
+            Action::Get { key } => {
+                lru.get(&key);
+            }
+            Action::Remove { key } => {
+                lru.remove(&key);
+            }
+            Action::PopOldest => {
+                lru.pop_oldest();
+            }
+            Action::PopNewest => {
+                lru.pop_newest();
+            }
+            Action::Clear => {
+                lru.clear();
+            }
+            Action::ToggleOverflow => {
+                let value = !lru.limiter_mut().overflow;
+                lru.limiter_mut().overflow = value;
+            }
+        }
+
+        lru.assert_check_internal_state();
     }
-}
+});

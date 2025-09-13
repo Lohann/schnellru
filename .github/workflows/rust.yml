@@ -15,9 +15,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Install nightly toolchain
-      run: rustup toolchain install nightly-2024-05-08
+      run: rustup toolchain install nightly-2025-06-27
     - name: Install miri
-      run: rustup run nightly-2024-05-08 rustup component add miri
+      run: rustup run nightly-2025-06-27 rustup component add miri
     - name: Build and test
       run: ./ci/jobs/build-and-test.sh
   fuzz:
@@ -27,7 +27,7 @@ jobs:
     - name: Install system dependencies
       run: sudo apt-get install -y binutils-dev libunwind-dev
     - name: Install honggfuzz
-      run: cargo install --locked --version 0.5.56 honggfuzz
+      run: cargo install --locked --version 0.5.57 honggfuzz
     - name: Fuzz
       run: ./ci/jobs/fuzz.sh
   clippy:

@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::hint::black_box;
 use schnellru::*;
+use std::hint::black_box;
 
 fn lru_benchmarks(c: &mut Criterion) {
     c.bench_function("insert million elements with half million cap (schnellru)", |b| {

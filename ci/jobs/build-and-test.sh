@@ -20,12 +20,12 @@ echo ">> cargo test (release)"
 cargo test --all --release
 
 echo ">> cargo test (randomize-layout)"
-RUSTFLAGS="-Z randomize-layout" rustup run nightly-2024-05-08 cargo test
+RUSTFLAGS="-Z randomize-layout" rustup run nightly-2025-06-27 cargo test
 
 echo ">> cargo test (randomize-layout, release)"
-RUSTFLAGS="-Z randomize-layout" rustup run nightly-2024-05-08 cargo test --release
+RUSTFLAGS="-Z randomize-layout" rustup run nightly-2025-06-27 cargo test --release
 
 echo ">> cargo miri"
-rustup run nightly-2024-05-08 cargo miri test
+rustup run nightly-2025-06-27 cargo miri test
 
 echo "All OK!"

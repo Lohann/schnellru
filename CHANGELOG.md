@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- `hashbrown` was updated to 0.14.5
+- replaced `honggfuzz` by `libfuzzer-sys`
+
 ## 0.2.4 - 2025-01-03
 
 - Implement `From` for `ByLength` and `ByMemoryUsage` (#9)

@@ -1,9 +1,12 @@
-use arbitrary::Arbitrary;
-use honggfuzz::fuzz;
+#![no_main]
+use libfuzzer_sys::{
+    arbitrary::{self, Arbitrary},
+    fuzz_target,
+};
 
 type Key = u16;
 
-#[derive(Arbitrary, Debug)]
+#[derive(Debug, Arbitrary)]
 pub enum Action {
     Insert { key: Key, value: u8 },
     Remove { key: Key },
@@ -12,7 +15,7 @@ pub enum Action {
     Clear,
 }
 
-#[derive(Arbitrary, Debug)]
+#[derive(Debug, Arbitrary)]
 pub struct Testcase {
     hasher_seed: usize,
     memory_usage: u16,
@@ -78,41 +81,37 @@ impl<K, V> schnellru::Limiter<K, V> for ByMemoryUsage {
     }
 }
 
-fn main() {
-    loop {
-        fuzz!(|testcase: Testcase| {
-            let hasher = ahash::RandomState::with_seed(testcase.hasher_seed);
-            let limiter = ByMemoryUsage::new(testcase.memory_usage as usize);
-            let mut lru = schnellru::LruMap::with_hasher(limiter, hasher);
-            let mut last_pointer = std::ptr::null();
+fuzz_target!(|testcase: Testcase| {
+    let hasher = ahash::RandomState::with_seed(testcase.hasher_seed);
+    let limiter = ByMemoryUsage::new(testcase.memory_usage as usize);
+    let mut lru = schnellru::LruMap::with_hasher(limiter, hasher);
+    let mut last_pointer = std::ptr::null();
 
-            for action in testcase.actions {
-                match action {
-                    Action::Insert { key, value } => {
-                        lru.insert(key, value);
-                    }
-                    Action::Remove { key } => {
-                        lru.remove(&key);
-                    }
-                    Action::PopOldest => {
-                        lru.pop_oldest();
-                    }
-                    Action::PopNewest => {
-                        lru.pop_newest();
-                    }
-                    Action::Clear => {
-                        lru.clear();
-                    }
-                }
-
-                assert!(lru.memory_usage() <= testcase.memory_usage as usize);
-
-                let pointer = lru.allocation_pointer();
-                if lru.limiter().hit_memory_limit {
-                    assert_eq!(pointer, last_pointer);
-                }
-                last_pointer = pointer;
+    for action in testcase.actions {
+        match action {
+            Action::Insert { key, value } => {
+                lru.insert(key, value);
             }
-        });
+            Action::Remove { key } => {
+                lru.remove(&key);
+            }
+            Action::PopOldest => {
+                lru.pop_oldest();
+            }
+            Action::PopNewest => {
+                lru.pop_newest();
+            }
+            Action::Clear => {
+                lru.clear();
+            }
+        }
+
+        assert!(lru.memory_usage() <= testcase.memory_usage as usize);
+
+        let pointer = lru.allocation_pointer();
+        if lru.limiter().hit_memory_limit {
+            assert_eq!(pointer, last_pointer);
+        }
+        last_pointer = pointer;
     }
-}
+});

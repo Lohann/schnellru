@@ -600,9 +600,7 @@ where
     where
         T: Hash + ?Sized,
     {
-        let mut hasher = self.hasher.build_hasher();
-        key.hash(&mut hasher);
-        hasher.finish()
+        self.hasher.hash_one(key)
     }
 
     /// Returns a reference to the value for a given key and promotes that element to be the most
@@ -636,7 +634,7 @@ where
     #[inline]
     pub fn get_or_insert<'a>(
         &mut self,
-        key: (impl Into<L::KeyToInsert<'a>> + Hash + PartialEq<K>),
+        key: impl Into<L::KeyToInsert<'a>> + Hash + PartialEq<K>,
         get: impl FnOnce() -> V,
     ) -> Option<&mut V>
     where
@@ -652,7 +650,7 @@ where
     #[inline]
     pub fn get_or_insert_fallible<'a, E>(
         &mut self,
-        key: (impl Into<L::KeyToInsert<'a>> + Hash + PartialEq<K>),
+        key: impl Into<L::KeyToInsert<'a>> + Hash + PartialEq<K>,
         get: impl FnOnce() -> Result<V, E>,
     ) -> Result<Option<&mut V>, E>
     where
@@ -1244,11 +1242,7 @@ where
             // but we can force it to do it through 'reserve'. It's a hack, but it works.
             let extra_capacity = full_capacity_for_buckets(bucket_count) / 2 - guard.map.len();
             let hasher = &self.hasher;
-            guard.map.reserve(extra_capacity, |entry| {
-                let mut hasher = hasher.build_hasher();
-                entry.key.hash(&mut hasher);
-                hasher.finish()
-            });
+            guard.map.reserve(extra_capacity, |entry| hasher.hash_one(&entry.key));
 
             core::mem::forget(guard);
         }
@@ -1422,7 +1416,7 @@ where
     }
 
     /// An iterator over all of the elements in the most recently used order.
-    pub fn iter(&self) -> Iter<K, V, L> {
+    pub fn iter(&self) -> Iter<'_, K, V, L> {
         Iter {
             map: &self.map,
             newest: self.newest,
@@ -1432,7 +1426,7 @@ where
     }
 
     /// A mutable iterator over all of the elements in the most recently used order.
-    pub fn iter_mut(&mut self) -> IterMut<K, V, L> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, K, V, L> {
         let newest = self.newest;
         let oldest = self.oldest;
         let remaining = self.len();
@@ -1447,7 +1441,7 @@ where
     /// Drains the map of all of its elements in the most recently used order.
     ///
     /// When the iterator is dropped the map will be automatically cleared.
-    pub fn drain(&mut self) -> Drain<K, V, L, S> {
+    pub fn drain(&mut self) -> Drain<'_, K, V, L, S> {
         Drain { map: self }
     }
 
