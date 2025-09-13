@@ -823,7 +823,7 @@ where
         // SAFETY: Map is not empty so at least one bucket must exist.
         let mut oldest_entry = unsafe {
             let oldest_bucket = self.map.bucket(self.oldest.into_usize());
-            self.map.remove(oldest_bucket)
+            self.map.remove(oldest_bucket).0
         };
         debug_assert_eq!(oldest_entry.older, L::LinkType::MAX);
 
@@ -870,7 +870,7 @@ where
         // SAFETY: Map is not empty so at least one bucket must exist.
         let mut newest_entry = unsafe {
             let newest_bucket = self.map.bucket(self.newest.into_usize());
-            self.map.remove(newest_bucket)
+            self.map.remove(newest_bucket).0
         };
         debug_assert_eq!(newest_entry.newer, L::LinkType::MAX);
 
@@ -989,7 +989,7 @@ where
     unsafe fn remove_bucket(&mut self, bucket: Bucket<Entry<K, V, L::LinkType>>) -> Entry<K, V, L::LinkType> {
         self.assert_not_empty();
         let index = L::LinkType::from_usize(self.map.bucket_index(&bucket));
-        let mut entry = self.map.remove(bucket);
+        let mut entry = self.map.remove(bucket).0;
 
         if self.newest == index {
             self.newest = entry.older;
@@ -1386,7 +1386,7 @@ where
             let mut iter = old_map.iter();
             while let Some(old_bucket) = iter.next() {
                 let old_index = old_map.bucket_index(&old_bucket);
-                let entry = old_map.remove(old_bucket);
+                let entry = old_map.remove(old_bucket).0;
                 let hash = self.hash_key(&entry.key);
 
                 let new_bucket = self.map.insert_no_grow(hash, entry);
