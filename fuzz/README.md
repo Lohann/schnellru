@@ -3,5 +3,5 @@ Fuzz tests for `schnellru` crate.
 Installation:
 
 ```
-cargo install -f honggfuzz
+cargo install -f cargo-fuzz
 ```
