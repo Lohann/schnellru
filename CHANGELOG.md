@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `hashbrown` was updated to 0.14.5
 - replaced `honggfuzz` by `libfuzzer-sys`
-- Set MSRV to 1.88.0
+- Set MSRV to 1.78.0
 
 ## 0.2.4 - 2025-01-03
 
