@@ -40,11 +40,3 @@ harness = false
 
 [workspace]
 members = [".", "fuzz"]
-
-# [profile.release]
-# opt-level = 3
-# lto = "fat"
-# codegen-units = 1
-# debug = false
-# panic = "abort"
-# strip = "symbols"
