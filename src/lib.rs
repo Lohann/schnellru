@@ -636,7 +636,7 @@ where
     #[inline]
     pub fn get_or_insert<'a>(
         &mut self,
-        key: (impl Into<L::KeyToInsert<'a>> + Hash + PartialEq<K> + ?Sized),
+        key: (impl Into<L::KeyToInsert<'a>> + Hash + PartialEq<K>),
         get: impl FnOnce() -> V,
     ) -> Option<&mut V>
     where
@@ -652,7 +652,7 @@ where
     #[inline]
     pub fn get_or_insert_fallible<'a, E>(
         &mut self,
-        key: (impl Into<L::KeyToInsert<'a>> + Hash + PartialEq<K> + ?Sized),
+        key: (impl Into<L::KeyToInsert<'a>> + Hash + PartialEq<K>),
         get: impl FnOnce() -> Result<V, E>,
     ) -> Result<Option<&mut V>, E>
     where
@@ -2438,7 +2438,7 @@ mod tests {
         for n in 0..limit {
             lru.insert(n, n);
             assert_eq!(lru.len(), n + 1);
-            assert_eq!(lru.peek_oldest().unwrap(), (&0, &0), "failed at {}", n);
+            assert_eq!(lru.peek_oldest().unwrap(), (&0, &0), "failed at {n}");
             assert_eq!(lru.peek_newest().unwrap(), (&n, &n));
         }
 
@@ -2460,8 +2460,8 @@ mod tests {
 
         for n in 0..limit {
             lru.insert(n, ());
-            assert_eq!(lru.len(), n as usize + 1, "failed at {}", n);
-            assert_eq!(lru.peek_oldest().unwrap(), (&0, &()), "failed at {}", n);
+            assert_eq!(lru.len(), n as usize + 1, "failed at {n}");
+            assert_eq!(lru.peek_oldest().unwrap(), (&0, &()), "failed at {n}");
             assert_eq!(lru.peek_newest().unwrap(), (&n, &()));
         }
 
